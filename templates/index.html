@@ -25,6 +25,9 @@
                 <div class="metric" style="color: #4CAF50;">Classe: <span id="label">-</span></div>
                 <div class="metric" style="color: #FFC107;">Confiança: <span id="conf">-</span></div>
                 <div class="metric" style="color: #2196F3;">Latência: <span id="lat">-</span> ms</div>
+                <div class="metric" style="color: #9C27B0;">Desempenho: <span id="fps">-</span> FPS</div>
+                <div class="metric" style="color: #00BCD4;">CPU Uso: <span id="cpu">-</span>%</div>
+                <div class="metric" style="color: #FF5722;">CPU Temp: <span id="temp">-</span>°C</div>
             </div>
         </div>
         <div>
@@ -45,10 +48,16 @@
                     document.getElementById('label').innerText = data.label.toUpperCase();
                     document.getElementById('conf').innerText = (data.confidence * 100).toFixed(1) + '%';
                     document.getElementById('lat').innerText = data.inference_ms.toFixed(1);
+                    document.getElementById('fps').innerText = data.fps.toFixed(1);
+                    document.getElementById('cpu').innerText = data.cpu_usage.toFixed(1);
+                    document.getElementById('temp').innerText = data.cpu_temp.toFixed(1);
                 } else {
                     document.getElementById('label').innerText = 'PAUSADO';
                     document.getElementById('conf').innerText = '-';
                     document.getElementById('lat').innerText = '-';
+                    document.getElementById('fps').innerText = '-';
+                    document.getElementById('cpu').innerText = '-';
+                    document.getElementById('temp').innerText = '-';
                 }
             } catch (e) {}
         }, 250);

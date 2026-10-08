@@ -1,13 +1,30 @@
 import unittest
 import os
 import glob
+import psutil
 import numpy as np
 from PIL import Image
 from ai_edge_litert.interpreter import Interpreter
 
+# Importação da classe de monitoramento a partir do módulo principal
+from app import SystemMonitor
+
+class TestSystemMonitoring(unittest.TestCase):
+    def test_cpu_usage_reading(self):
+        """Valida se o uso de CPU retorna um valor numérico entre 0.0 e 100.0"""
+        usage = SystemMonitor.get_cpu_usage()
+        self.assertIsInstance(usage, float)
+        self.assertGreaterEqual(usage, 0.0)
+        self.assertLessEqual(usage, 100.0)
+
+    def test_cpu_temperature_reading(self):
+        """Valida se a temperatura da CPU é capturada sem gerar exceções"""
+        temp = SystemMonitor.get_cpu_temp()
+        self.assertIsInstance(temp, float)
+        self.assertGreaterEqual(temp, 0.0)
+
 class TestInferenceEngine(unittest.TestCase):
     def setUp(self):
-        # Definição dos caminhos mapeados
         self.model_path = "model/qModel_TrashNET.tflite"
         self.labels_path = "model/labels.txt"
         self.dataset_path = "dataset/TrashNET"
@@ -36,7 +53,6 @@ class TestInferenceEngine(unittest.TestCase):
         if not os.path.exists(self.dataset_path):
             self.skipTest(f"Diretório do dataset não encontrado em {self.dataset_path}")
             
-        # Busca a primeira imagem JPG disponível em qualquer subdiretório do TrashNET
         search_pattern = os.path.join(self.dataset_path, "**", "*.jpg")
         images_found = glob.glob(search_pattern, recursive=True)
         
@@ -46,7 +62,6 @@ class TestInferenceEngine(unittest.TestCase):
         test_image_path = images_found[0]
         
         try:
-            # Setup do interpretador
             interpreter = Interpreter(model_path=self.model_path)
             interpreter.allocate_tensors()
             in_details = interpreter.get_input_details()[0]
@@ -55,19 +70,16 @@ class TestInferenceEngine(unittest.TestCase):
             _, height, width, _ = in_details['shape']
             in_scale, in_zero_point = in_details['quantization']
             
-            # Pré-processamento
             imagem_pil = Image.open(test_image_path).convert('RGB').resize((width, height))
             matriz_imagem = np.array(imagem_pil)
             img_norm = matriz_imagem.astype(np.float32) / 255.0
             img_quant = np.clip(np.round(img_norm / in_scale) + in_zero_point, -128, 127).astype(np.int8)
             dados_entrada = np.expand_dims(img_quant, axis=0)
             
-            # Inferência
             interpreter.set_tensor(in_details['index'], dados_entrada)
             interpreter.invoke()
             output_quant = interpreter.get_tensor(out_details['index'])[0]
             
-            # Validações de conformidade
             self.assertEqual(len(output_quant), 6, "A saída não possui o número correto de classes (6)")
             
         except Exception as e:

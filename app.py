@@ -3,6 +3,7 @@ import time
 import subprocess
 import threading
 import io
+import psutil
 import numpy as np
 from PIL import Image
 from flask import Flask, render_template, Response, jsonify
@@ -20,9 +21,25 @@ latest_result = {
     "label": "Aguardando...",
     "confidence": 0.0,
     "inference_ms": 0.0,
+    "fps": 0.0,
+    "cpu_usage": 0.0,
+    "cpu_temp": 0.0,
     "active": True
 }
 result_lock = threading.Lock()
+
+class SystemMonitor:
+    @staticmethod
+    def get_cpu_temp():
+        try:
+            with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+                return round(float(f.read().strip()) / 1000.0, 1)
+        except Exception:
+            return 0.0
+
+    @staticmethod
+    def get_cpu_usage():
+        return psutil.cpu_percent(interval=None)
 
 class CameraStream:
     def __init__(self):
@@ -84,6 +101,10 @@ def inference_worker():
     in_scale, in_zero_point = input_details[0]['quantization']
     out_scale, out_zero_point = output_details[0]['quantization']
     
+    # Inicialização do cálculo de FPS
+    last_time = time.time()
+    SystemMonitor.get_cpu_usage() # Chamada inicial de descarte para calibrar o psutil
+    
     while True:
         frame_bytes = camera_stream.get_frame()
         if frame_bytes and latest_result["active"]:
@@ -108,12 +129,23 @@ def inference_worker():
                 
                 latency_ms = (time.time() - start_time) * 1000
                 
+                # Cômputo do FPS e métricas de sistema
+                curr_time = time.time()
+                fps = 1.0 / max((curr_time - last_time), 1e-4)
+                last_time = curr_time
+                
+                cpu_usage = SystemMonitor.get_cpu_usage()
+                cpu_temp = SystemMonitor.get_cpu_temp()
+                
                 with result_lock:
                     latest_result["label"] = labels[class_idx]
                     latest_result["confidence"] = confidence
                     latest_result["inference_ms"] = latency_ms
+                    latest_result["fps"] = fps
+                    latest_result["cpu_usage"] = cpu_usage
+                    latest_result["cpu_temp"] = cpu_temp
                     
-            except Exception as e:
+            except Exception:
                 pass
                 
         time.sleep(0.05)
@@ -147,6 +179,8 @@ def control_action(action):
     with result_lock:
         if action == 'start':
             latest_result["active"] = True
+            # Recalibra o tempo para evitar salto falso de FPS ao retomar
+            time.sleep(0.05)
         elif action == 'stop':
             latest_result["active"] = False
     return jsonify({"status": "success"})
