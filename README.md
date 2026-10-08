@@ -22,9 +22,8 @@ graph TD
 ## 2. Configuração de Hardware
 
 * **Placa Microcontroladora**: Raspberry Pi Zero 2W.
-* **Módulo de Captura**: Câmera compatível com o subsistema `libcamera` (ex.: Raspberry Pi Camera Module V2).
-* **Gestão Térmica**: Dissipador de calor passivo instalado no System-on-Chip (SoC) para evitar *thermal throttling* em operação contínua.
-* **Sistema Operacional**: Raspberry Pi OS Lite (64 bits, codinome Bookworm), configurado sem ambiente de área de trabalho para maximização da memória volátil disponível.
+* **Módulo de Captura**: Raspberry Pi Camera Rev. 1.3.
+* **Sistema Operacional**: Raspberry Pi OS Lite (64 bits, Legacy Bookworm).
 
 ## 3. Instalação e Dependências de Software
 
@@ -87,14 +86,6 @@ Retorna um objeto JSON contendo as métricas atualizadas de inferência e hardwa
 Altera o estado da *thread* de inferência. O parâmetro `<action>` aceita os valores `start` (retoma a classificação) e `stop` (interrompe o processamento neural, mantendo o fluxo de vídeo ativo).
 
 ## 5. Desempenho do Sistema
-
-As métricas operacionais foram extraídas durante o monitoramento em tempo real do sistema na interface web, refletindo a capacidade da placa em executar o modelo INT8 em condições reais de iluminação e captura.
-
-* **Detecção de Vidro (Classe: GLASS)**: O classificador obteve níveis de confiança que variaram de 74.6% a 93.0%. A latência associada ao processamento da inferência neural situou-se entre 164.8 ms e 172.5 ms.
-
-
-* **Detecção de Plástico (Classe: PLASTIC)**: A estabilidade do modelo resultou em uma confiança cravada em 98.4%. A latência computacional para esta classificação manteve-se entre 163.6 ms e 165.5 ms.
-
 
 * **Monitoramento de Hardware (Telemetria)**:
 * A taxa de atualização global alcançou uma faixa de 4.5 FPS a 4.7 FPS.
