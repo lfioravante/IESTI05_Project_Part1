@@ -88,10 +88,10 @@ Altera o estado da *thread* de inferência. O parâmetro `<action>` aceita os va
 ## 5. Desempenho do Sistema
 
 * **Monitoramento de Hardware (Telemetria)**:
-* A taxa de atualização global alcançou uma faixa de 4.5 FPS a 4.7 FPS.
+* A taxa de atualização global alcançou uma faixa de 4 FPS a 5 FPS.
 
 
-* O consumo de recursos da CPU flutuou entre 24.7% e 28.2%.
+* O consumo de recursos da CPU flutuou entre 24% e 30%.
 
 
-* A temperatura do processador permaneceu na zona operacional segura, registrando medições de 52.6°C a 53.7°C.
+* A temperatura do processador permaneceu na zona operacional segura, registrando medições de 50°C a 55°C.
