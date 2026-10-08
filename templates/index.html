@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificação - RPi Zero 2W</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #121212; color: #e0e0e0; margin: 0; padding: 15px; }
+        .container { max-width: 800px; margin: auto; text-align: center; }
+        .video-container { position: relative; display: inline-block; margin-bottom: 20px; border: 2px solid #333; border-radius: 8px; overflow: hidden; }
+        img { max-width: 100%; height: auto; display: block; }
+        .overlay { position: absolute; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.7); padding: 10px; border-radius: 5px; text-align: left; }
+        .metric { margin: 5px 0; font-size: 1.1rem; font-weight: bold; }
+        .btn { padding: 10px 20px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .btn-start { background-color: #4CAF50; color: white; }
+        .btn-stop { background-color: #f44336; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Classificador Edge - TrashNET INT8</h2>
+        <div class="video-container">
+            <img src="/video_feed" width="640" height="480" alt="Camera Stream">
+            <div class="overlay">
+                <div class="metric" style="color: #4CAF50;">Classe: <span id="label">-</span></div>
+                <div class="metric" style="color: #FFC107;">Confiança: <span id="conf">-</span></div>
+                <div class="metric" style="color: #2196F3;">Latência: <span id="lat">-</span> ms</div>
+                <div class="metric" style="color: #9C27B0;">Desempenho: <span id="fps">-</span> FPS</div>
+                <div class="metric" style="color: #00BCD4;">CPU Uso: <span id="cpu">-</span>%</div>
+                <div class="metric" style="color: #FF5722;">CPU Temp: <span id="temp">-</span>°C</div>
+            </div>
+        </div>
+        <div>
+            <button class="btn btn-start" onclick="control('start')">Iniciar Inferência</button>
+            <button class="btn btn-stop" onclick="control('stop')">Pausar Inferência</button>
+        </div>
+    </div>
+    <script>
+        function control(action) {
+            fetch('/control/' + action, { method: 'POST' });
+        }
+        
+        setInterval(async () => {
+            try {
+                const res = await fetch('/stats');
+                const data = await res.json();
+                if(data.active) {
+                    document.getElementById('label').innerText = data.label.toUpperCase();
+                    document.getElementById('conf').innerText = (data.confidence * 100).toFixed(1) + '%';
+                    document.getElementById('lat').innerText = data.inference_ms.toFixed(1);
+                    document.getElementById('fps').innerText = data.fps.toFixed(1);
+                    document.getElementById('cpu').innerText = data.cpu_usage.toFixed(1);
+                    document.getElementById('temp').innerText = data.cpu_temp.toFixed(1);
+                } else {
+                    document.getElementById('label').innerText = 'PAUSADO';
+                    document.getElementById('conf').innerText = '-';
+                    document.getElementById('lat').innerText = '-';
+                    document.getElementById('fps').innerText = '-';
+                    document.getElementById('cpu').innerText = '-';
+                    document.getElementById('temp').innerText = '-';
+                }
+            } catch (e) {}
+        }, 250);
+    </script>
+</body>
+</html>
